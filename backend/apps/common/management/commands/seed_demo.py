@@ -70,38 +70,107 @@ class Command(BaseCommand):
             },
         )
 
-        order, created = Order.objects.get_or_create(
+        order_completed, created = Order.objects.get_or_create(
             student_no="S2026001",
-            pickup_time=timezone.now() + timedelta(hours=2),
+            pickup_time=timezone.now() - timedelta(hours=5),
             defaults={
                 "student_name": "李同学",
                 "phone": "13800000001",
                 "delivery_address": "高一教学楼 3 层",
                 "note": "少辣",
-                "status": "confirmed",
+                "status": "completed",
+                "payment_status": "paid",
             },
         )
         if created:
-            OrderItem.objects.create(order=order, dish=dishes[0], quantity=1, unit_price=dishes[0].price)
-            OrderItem.objects.create(order=order, dish=dishes[2], quantity=1, unit_price=dishes[2].price)
-            order.recalculate_total()
+            OrderItem.objects.create(order=order_completed, dish=dishes[0], quantity=1, unit_price=dishes[0].price)
+            OrderItem.objects.create(order=order_completed, dish=dishes[2], quantity=1, unit_price=dishes[2].price)
+            order_completed.recalculate_total()
 
         DeliveryTask.objects.update_or_create(
-            order=order,
+            order=order_completed,
             defaults={
                 "courier_name": "王师傅",
                 "courier_phone": "13900000002",
                 "route": "食堂出餐口 -> 高一教学楼",
-                "status": "assigned",
-                "estimated_arrival": order.pickup_time,
+                "status": "delivered",
+                "estimated_arrival": order_completed.pickup_time,
+                "delivered_at": order_completed.pickup_time,
             },
         )
 
         Review.objects.get_or_create(
-            order=order,
+            order=order_completed,
             dish=dishes[0],
             student_name="李同学",
             defaults={"rating": 5, "content": "鸡胸肉不柴，藜麦分量足，配送也准时。"},
+        )
+
+        order_unpaid, created = Order.objects.get_or_create(
+            student_no="S2026002",
+            pickup_time=timezone.now() + timedelta(hours=1),
+            defaults={
+                "student_name": "张同学",
+                "phone": "13800000003",
+                "delivery_address": "高二教学楼 2 层",
+                "note": "",
+                "status": "confirmed",
+                "payment_status": "unpaid",
+            },
+        )
+        if created:
+            OrderItem.objects.create(order=order_unpaid, dish=dishes[1], quantity=1, unit_price=dishes[1].price)
+            order_unpaid.recalculate_total()
+
+        DeliveryTask.objects.update_or_create(
+            order=order_unpaid,
+            defaults={
+                "status": "waiting",
+                "estimated_arrival": order_unpaid.pickup_time,
+            },
+        )
+
+        order_cancelled, created = Order.objects.get_or_create(
+            student_no="S2026003",
+            pickup_time=timezone.now() - timedelta(hours=2),
+            defaults={
+                "student_name": "王同学",
+                "phone": "13800000004",
+                "delivery_address": "高三教学楼 1 层",
+                "note": "临时有事",
+                "status": "cancelled",
+                "payment_status": "paid",
+            },
+        )
+        if created:
+            OrderItem.objects.create(order=order_cancelled, dish=dishes[3], quantity=1, unit_price=dishes[3].price)
+            order_cancelled.recalculate_total()
+
+        order_failed_delivery, created = Order.objects.get_or_create(
+            student_no="S2026004",
+            pickup_time=timezone.now() - timedelta(hours=3),
+            defaults={
+                "student_name": "赵同学",
+                "phone": "13800000005",
+                "delivery_address": "初中部 4 层",
+                "note": "",
+                "status": "delivering",
+                "payment_status": "paid",
+            },
+        )
+        if created:
+            OrderItem.objects.create(order=order_failed_delivery, dish=dishes[4], quantity=1, unit_price=dishes[4].price)
+            order_failed_delivery.recalculate_total()
+
+        DeliveryTask.objects.update_or_create(
+            order=order_failed_delivery,
+            defaults={
+                "courier_name": "刘师傅",
+                "courier_phone": "13900000006",
+                "route": "食堂出餐口 -> 初中部",
+                "status": "failed",
+                "estimated_arrival": order_failed_delivery.pickup_time,
+            },
         )
 
         self.stdout.write(self.style.SUCCESS("Demo data seeded."))

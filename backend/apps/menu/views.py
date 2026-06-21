@@ -1,3 +1,4 @@
+from django.db.models import Avg, Count
 from rest_framework import filters, viewsets
 
 from .models import Category, Dish
@@ -14,10 +15,13 @@ class DishViewSet(viewsets.ModelViewSet):
     serializer_class = DishSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["name", "description", "category__name"]
-    ordering_fields = ["available_date", "price", "calories", "stock"]
+    ordering_fields = ["available_date", "price", "calories", "stock", "avg_rating", "review_count"]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().annotate(
+            review_count=Count("reviews", distinct=True),
+            avg_rating=Avg("reviews__rating", distinct=True),
+        )
         meal_period = self.request.query_params.get("meal_period")
         available_date = self.request.query_params.get("available_date")
         category = self.request.query_params.get("category")

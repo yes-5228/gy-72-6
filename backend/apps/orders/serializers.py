@@ -30,6 +30,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "pickup_time",
             "note",
             "status",
+            "payment_status",
             "total_amount",
             "items",
             "created_at",

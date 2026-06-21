@@ -11,6 +11,8 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class DishSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True)
+    review_count = serializers.IntegerField(read_only=True, default=0)
+    avg_rating = serializers.FloatField(read_only=True, default=None)
 
     class Meta:
         model = Dish
@@ -32,4 +34,6 @@ class DishSerializer(serializers.ModelSerializer):
             "sodium",
             "allergens",
             "is_recommended",
+            "review_count",
+            "avg_rating",
         ]

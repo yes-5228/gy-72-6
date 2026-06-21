@@ -13,6 +13,11 @@ class Order(models.Model):
         ("cancelled", "已取消"),
     ]
 
+    PAYMENT_STATUS_CHOICES = [
+        ("unpaid", "未支付"),
+        ("paid", "已支付"),
+    ]
+
     student_name = models.CharField("学生姓名", max_length=50)
     student_no = models.CharField("学号", max_length=30)
     phone = models.CharField("联系电话", max_length=30)
@@ -20,6 +25,7 @@ class Order(models.Model):
     pickup_time = models.DateTimeField("预约送达时间")
     note = models.CharField("备注", max_length=200, blank=True)
     status = models.CharField("状态", max_length=20, choices=STATUS_CHOICES, default="pending")
+    payment_status = models.CharField("支付状态", max_length=20, choices=PAYMENT_STATUS_CHOICES, default="unpaid")
     total_amount = models.DecimalField("总金额", max_digits=9, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
